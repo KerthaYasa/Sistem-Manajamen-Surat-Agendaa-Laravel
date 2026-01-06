@@ -57,6 +57,7 @@ class SuratMasukController extends Controller
      */
     public function store(Request $request)
     {
+        // 1. GABUNGKAN semua validasi jadi satu (jangan dipisah)
         $validated = $request->validate([
             'nomor_agenda'      => 'required|string|max:255',
             'nomor_surat_asal'  => 'required|string|max:255',
@@ -64,28 +65,62 @@ class SuratMasukController extends Controller
             'tanggal_surat'     => 'required|date',
             'tanggal_diterima'  => 'required|date',
             'perihal'           => 'required|string|max:255',
-            'kategori_id'       => 'required|exists:kategori_surats,id', // Sesuaikan nama tabel kategori di DB
+            'kategori_id'       => 'required|exists:kategori_surats,id',
             'isi_ringkas'       => 'required',
             'lampiran_file'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            
+            // PERBAIKAN: Sesuaikan pilihan di sini
+            'status_disposisi'  => 'required|in:Belum Disposisi,Sudah Disposisi,Arsip',
         ]);
 
-        // Upload File
+        // 2. Upload File
         if ($request->hasFile('lampiran_file')) {
             $path = $request->file('lampiran_file')->store('surat-masuk', 'public');
             $validated['lampiran_file'] = $path;
         }
 
-        // Set Default Value
+        // 3. Set User Pembuat
         $validated['created_by'] = auth()->id();
-        $validated = $request->validate([
-            'status_disposisi' => 'required|in:Pending,Diproses,Selesai,Diarsipkan',
-        ]);
 
+        // 4. Simpan ke Database
         SuratMasuk::create($validated);
 
         return redirect()->route('surat-masuk.index')->with('success', 'Surat Masuk berhasil ditambahkan!');
     }
 
+     /**
+     * Proses Update Data.
+     */
+    public function update(Request $request, SuratMasuk $suratMasuk)
+    {
+        $validated = $request->validate([
+            'nomor_agenda'      => 'required',
+            'nomor_surat_asal'  => 'required',
+            'asal_surat'        => 'required',
+            'tanggal_surat'     => 'required|date',
+            'tanggal_diterima'  => 'required|date',
+            'perihal'           => 'required',
+            'kategori_id'       => 'required',
+            'isi_ringkas'       => 'required',
+            'lampiran_file'     => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            
+            // PERBAIKAN: Samakan pilihannya dengan store
+            'status_disposisi'  => 'required|in:Belum Disposisi,Sudah Disposisi,Arsip',
+        ]);
+
+        // Cek Upload File Baru (Sama seperti sebelumnya)
+        if ($request->hasFile('lampiran_file')) {
+            if ($suratMasuk->lampiran_file && Storage::disk('public')->exists($suratMasuk->lampiran_file)) {
+                Storage::disk('public')->delete($suratMasuk->lampiran_file);
+            }
+            $path = $request->file('lampiran_file')->store('surat-masuk', 'public');
+            $validated['lampiran_file'] = $path;
+        }
+
+        $suratMasuk->update($validated);
+
+        return redirect()->route('surat-masuk.index')->with('success', 'Data surat berhasil diperbarui!');
+    }
     /**
      * Menampilkan Detail Surat.
      */
@@ -102,40 +137,6 @@ class SuratMasukController extends Controller
     {
         $kategoris = KategoriSurat::all();
         return view('surat-masuk.edit', compact('suratMasuk', 'kategoris'));
-    }
-
-    /**
-     * Proses Update Data.
-     */
-    public function update(Request $request, SuratMasuk $suratMasuk)
-    {
-        $validated = $request->validate([
-            'nomor_agenda'      => 'required',
-            'nomor_surat_asal'  => 'required',
-            'asal_surat'        => 'required',
-            'tanggal_surat'     => 'required|date',
-            'tanggal_diterima'  => 'required|date',
-            'perihal'           => 'required',
-            'kategori_id'       => 'required',
-            'isi_ringkas'       => 'required',
-            'status_disposisi'  => 'required|in:Pending,Proses,Selesai,Arsip', // Validasi Status
-            'lampiran_file'     => 'nullable|file|mimes:pdf,jpg,png|max:2048',
-        ]);
-
-        // Cek Upload File Baru
-        if ($request->hasFile('lampiran_file')) {
-            // Hapus file lama
-            if ($suratMasuk->lampiran_file && Storage::disk('public')->exists($suratMasuk->lampiran_file)) {
-                Storage::disk('public')->delete($suratMasuk->lampiran_file);
-            }
-            // Simpan file baru
-            $path = $request->file('lampiran_file')->store('surat-masuk', 'public');
-            $validated['lampiran_file'] = $path;
-        }
-
-        $suratMasuk->update($validated);
-
-        return redirect()->route('surat-masuk.index')->with('success', 'Data surat berhasil diperbarui!');
     }
 
     /**

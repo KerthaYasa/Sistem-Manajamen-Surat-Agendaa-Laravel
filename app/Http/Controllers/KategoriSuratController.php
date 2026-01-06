@@ -76,8 +76,58 @@ public function index(Request $request)
     }
 
     // Menghapus data
-    public function destroy(KategoriSurat $kategoriSurat)
+    public function destroy(Request $request, $id)
     {
+        // Cari Kategori berdasarkan ID
+        $kategoriSurat = KategoriSurat::findOrFail($id);
+
+        // ==========================================
+        // BAGIAN 1: EKSEKUSI HAPUS PAKSA (Force Delete)
+        // ==========================================
+        if ($request->has('force_delete')) {
+            // 1. Hapus semua Surat Masuk yang pakai kategori ini
+            $kategoriSurat->suratMasuks()->delete();
+
+            // 2. Hapus semua Surat Keluar yang pakai kategori ini
+            $kategoriSurat->suratKeluars()->delete();
+
+            // 3. Terakhir, hapus Kategori itu sendiri
+            $kategoriSurat->delete();
+
+            return back()->with('success', 'Kategori beserta seluruh Surat Masuk & Keluar terkait BERHASIL dihapus.');
+        }
+
+        // ==========================================
+        // BAGIAN 2: CEK KEAMANAN (Validation)
+        // ==========================================
+        
+        // Hitung pemakaian di Surat Masuk
+        $jumlahMasuk = $kategoriSurat->suratMasuks()->count();
+        
+        // Hitung pemakaian di Surat Keluar
+        $jumlahKeluar = $kategoriSurat->suratKeluars()->count();
+
+        // Total pemakaian
+        $total = $jumlahMasuk + $jumlahKeluar;
+
+        // Jika dipakai minimal 1 kali (baik di masuk atau keluar)
+        if ($total > 0) {
+            // Buat pesan detail
+            $pesan = "Kategori ini sedang digunakan oleh: ";
+            if ($jumlahMasuk > 0) $pesan .= "$jumlahMasuk Surat Masuk ";
+            if ($jumlahKeluar > 0) $pesan .= "dan $jumlahKeluar Surat Keluar";
+            $pesan .= ". Apakah Anda yakin ingin menghapus semuanya?";
+
+            // Kembalikan ke View untuk memicu SweetAlert Merah
+            return back()->with('confirm_deletion', [
+                'id' => $kategoriSurat->id,
+                'message' => $pesan
+            ]);
+        }
+
+        // ==========================================
+        // BAGIAN 3: HAPUS NORMAL (Jika tidak dipakai)
+        // ==========================================
         $kategoriSurat->delete();
         return back()->with('success', 'Kategori berhasil dihapus');
     }

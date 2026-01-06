@@ -89,11 +89,27 @@
                             {{Str::limit($surat->perihal, 50)}}
                         </td>
 
-                        <td class="px-6 py-3 whitespace-nowrap">
-                            @if($surat->status_disposisi == 'Pending')
-                                <span class="text-orange-600 font-semibold text-xs uppercase tracking-wide">● Pending</span>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if($surat->status_disposisi == 'Sudah Disposisi')
+                                {{-- 🟢 HIJAU: Aman/Selesai --}}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+                                    Sudah Disposisi
+                                </span>
+
+                            @elseif($surat->status_disposisi == 'Arsip')
+                                {{-- ⚫ ABU-ABU: Arsip --}}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                                    Arsip
+                                </span>
+
                             @else
-                                <span class="text-green-600 font-semibold text-xs uppercase tracking-wide">● {{ $surat->status_disposisi }}</span>
+                                {{-- 🔴 MERAH: Belum Disposisi (Default) --}}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                                    Belum Disposisi
+                                </span>
                             @endif
                         </td>
 

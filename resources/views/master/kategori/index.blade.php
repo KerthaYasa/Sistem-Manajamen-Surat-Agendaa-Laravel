@@ -100,10 +100,12 @@
         @endif --}}
     </div>
 
+    {{-- Script JavaScript --}}
     <script>
+        // 1. Fungsi untuk Tombol Hapus Pertama (Klik icon tong sampah)
         function confirmDelete(id) {
             Swal.fire({
-                title: 'Hapus kategori ini?',
+                title: 'Hapus jenis agenda ini?',
                 text: "Data tidak dapat dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
@@ -117,5 +119,67 @@
                 }
             })
         }
+
+        // 2. Listener saat halaman dimuat (Untuk menangkap Session dari Controller)
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // A. Tampilkan Pesan Sukses (Jika ada)
+            @if(session('success'))
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Berhasil', 
+                    text: "{{ session('success') }}", 
+                    timer: 2000, 
+                    showConfirmButton: false 
+                });
+            @endif
+
+            // B. Tampilkan Konfirmasi Hapus Paksa (Ini kode tambahannya)
+            @if(session('confirm_deletion'))
+                Swal.fire({
+                    title: 'PERINGATAN!',
+                    text: "{{ session('confirm_deletion')['message'] }}",
+                    icon: 'error', // Pakai icon error/warning biar merah
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33', // Merah
+                    cancelButtonColor: '#3085d6', // Biru
+                    confirmButtonText: 'Ya, Hapus Semuanya!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Membuat form rahasia secara otomatis lewat Javascript
+                        let form = document.createElement('form');
+                        // Ambil ID dari session yang dikirim controller
+                        form.action = "{{ route('kategori-surat.destroy', session('confirm_deletion')['id']) }}";
+                        form.method = 'POST';
+
+                        // Input Token CSRF (Wajib di Laravel)
+                        let csrfToken = document.createElement('input');
+                        csrfToken.type = 'hidden';
+                        csrfToken.name = '_token';
+                        csrfToken.value = '{{ csrf_token() }}';
+                        form.appendChild(csrfToken);
+
+                        // Input Method DELETE
+                        let methodField = document.createElement('input');
+                        methodField.type = 'hidden';
+                        methodField.name = '_method';
+                        methodField.value = 'DELETE';
+                        form.appendChild(methodField);
+
+                        // Input Kunci: force_delete
+                        let forceInput = document.createElement('input');
+                        forceInput.type = 'hidden';
+                        forceInput.name = 'force_delete';
+                        forceInput.value = '1';
+                        form.appendChild(forceInput);
+
+                        // Tempel ke body dan kirim
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            @endif
+        });
     </script>
 </x-app-layout>

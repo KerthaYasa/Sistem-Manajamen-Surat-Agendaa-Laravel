@@ -68,13 +68,28 @@
                 {{-- BAGIAN BARU: Status Disposisi --}}
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">Status Disposisi</label>
-                    <select name="status_disposisi" class="w-full rounded-lg border-slate-300 py-3 px-4 focus:ring-blue-500 focus:border-blue-500 shadow-sm text-slate-700 bg-white" required>
-                        <option value="Pending" {{ old('status_disposisi') == 'Pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="Proses" {{ old('status_disposisi') == 'Proses' ? 'selected' : '' }}>Proses</option>
-                        <option value="Selesai" {{ old('status_disposisi') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
-                        <option value="Selesai" {{ old('status_disposisi') == 'Selesai' ? 'selected' : '' }}>Diarsipkan</option>
+                    <select name="status_disposisi" class="w-full rounded-lg border-slate-300 py-3 px-4 focus:ring-blue-500 focus:border-blue-500 shadow-sm text-slate-700 bg-white cursor-pointer" required>
+                        <option value="">-- Pilih Status --</option>
+                        
+                        {{-- Opsi 1: Belum Disposisi (Merah) --}}
+                        <option value="Belum Disposisi" class="text-red-600 font-semibold"
+                            {{-- Logika Selected: Cek Old Input -> Cek Database -> Default 'Belum Disposisi' jika Create --}}
+                            {{ (old('status_disposisi', $suratMasuk->status_disposisi ?? 'Belum Disposisi') == 'Belum Disposisi') ? 'selected' : '' }}>
+                             Belum Disposisi
+                        </option>
+                        
+                        {{-- Opsi 2: Sudah Disposisi (Hijau) --}}
+                        <option value="Sudah Disposisi" class="text-green-600 font-semibold"
+                            {{ (old('status_disposisi', $suratMasuk->status_disposisi ?? '') == 'Sudah Disposisi') ? 'selected' : '' }}>
+                            Sudah Disposisi
+                        </option>
+                        
+                        {{-- Opsi 3: Arsip (Abu-abu) --}}
+                        <option value="Arsip" class="text-slate-600 font-semibold"
+                            {{ (old('status_disposisi', $suratMasuk->status_disposisi ?? '') == 'Arsip') ? 'selected' : '' }}>
+                            Arsip (Selesai Total)
+                        </option>
                     </select>
-                     @error('status_disposisi') <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 {{-- Perihal --}}

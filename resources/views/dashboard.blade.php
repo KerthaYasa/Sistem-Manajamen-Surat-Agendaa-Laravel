@@ -97,15 +97,25 @@
                                 </td>
 
                                 <td class="px-6 py-4 align-top whitespace-nowrap">
-                                    @if($surat->status_disposisi == 'Selesai')
+                                    @if($surat->status_disposisi == 'Sudah Disposisi')
+                                        {{-- Status: SUDAH DISPOSISI (Hijau) --}}
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
                                             <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                                            SELESAI
+                                            SUDAH DISPOSISI
                                         </span>
+                                        
+                                    @elseif($surat->status_disposisi == 'Arsip')
+                                        {{-- Status: ARSIP (Abu-abu / Slate) --}}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                                            ARSIP
+                                        </span>
+
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
-                                            PENDING
+                                        {{-- Status: BELUM DISPOSISI (Merah / Default) --}}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                                            BELUM DISPOSISI
                                         </span>
                                     @endif
                                 </td>

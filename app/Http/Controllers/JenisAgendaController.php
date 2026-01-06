@@ -97,8 +97,31 @@ class JenisAgendaController extends Controller
     /**
      * Menghapus data
      */
-    public function destroy(JenisAgenda $jenisAgenda)
+    public function destroy(Request $request, $id) // Perhatikan parameter $id kita ambil manual biar fleksibel
     {
+        $jenisAgenda = JenisAgenda::findOrFail($id);
+
+        // 1. Cek apakah user mengirim sinyal "force_delete" (Hapus Paksa)
+        if ($request->has('force_delete')) {
+            // HAPUS SEMUA ANAKNYA DULU (Agenda Kegiatan)
+            $jenisAgenda->agendas()->delete(); 
+            
+            // BARU HAPUS BAPAKNYA (Jenis Agenda)
+            $jenisAgenda->delete();
+
+            return back()->with('success', 'Data Jenis Agenda dan seluruh Agenda Kegiatan terkait BERHASIL dihapus.');
+        }
+
+        // 2. Jika tidak ada sinyal paksa, Cek apakah datanya dipakai?
+        if ($jenisAgenda->agendas()->count() > 0) {
+            // Jangan hapus dulu! Kembali ke view dengan membawa ID dan pesan konfirmasi
+            return back()->with('confirm_deletion', [
+                'id' => $jenisAgenda->id,
+                'message' => 'Jenis Agenda ini sedang dipakai oleh ' . $jenisAgenda->agendas()->count() . ' data Agenda Kegiatan. Apakah Anda yakin ingin menghapus semuanya?'
+            ]);
+        }
+
+        // 3. Jika data bersih (tidak dipakai), hapus normal
         $jenisAgenda->delete();
         return back()->with('success', 'Data berhasil dihapus!');
     }

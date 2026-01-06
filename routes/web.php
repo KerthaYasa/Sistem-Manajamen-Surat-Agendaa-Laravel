@@ -31,7 +31,6 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-
 // --- GROUP ROUTE UNTUK USER LOGIN ---
 Route::middleware('auth')->group(function () {
     
